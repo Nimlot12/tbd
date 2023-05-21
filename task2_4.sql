@@ -172,7 +172,7 @@ FROM t
 WHERE t.student_id = sh2.student_id;
 
 --10.Добавьте в таблицу хобби новое хобби с названием "Учёба"
-INSERT INTO hobby2 (id, risk, name) VALUES (11, 0, 'Учеба');
+INSERT INTO hobby2 (id, risk, name) VALUES (12, 0, 'Учеба');
 
 --11.У всех студентов, средний балл которых меньше 3.2 поменяйте во всех хобби (если занимается чем-либо) 
 --и добавьте (если ничем не занимается), что студент занимается хобби из 10 задания
@@ -234,7 +234,96 @@ WHERE id IN (
   INNER JOIN student2 ON student2.id = student_hobby2.student_id
   WHERE date_start >= date_birth
 );
+--2 part task
 
 
+-- BEGIN;
 
+-- ALTER TABLE student_hobby2 DROP CONSTRAINT student_hobby_student_id_fkey;
+-- ALTER TABLE student_hobby2 DROP CONSTRAINT student_hobby_hobby_id_fkey;
+
+-- ALTER TABLE student_hobby2 ADD CONSTRAINT student_hobby_student_id_fkey
+-- FOREIGN KEY (id)
+-- REFERENCES student2 (id);
+
+-- ALTER TABLE student_hobby2 ADD CONSTRAINT student_hobby_hobby_id_fkey
+-- FOREIGN KEY (hobby_id)
+-- REFERENCES hobby2 (id);
+
+-- COMMIT;
+
+--4.Уменьшите риск хобби, которым занимается наибольшее количество человек
+SELECT hobby_id,
+    COUNT(*) AS count
+FROM student_hobby2
+GROUP BY hobby_id
+ORDER BY count DESC
+LIMIT 1;
+UPDATE hobby2
+SET risk = risk - 1
+WHERE id = 5;
+--5.Добавьте всем студентам, которые занимаются хотя бы одним хобби 0.01 балл
+UPDATE student
+SET score = score + 0.01
+WHERE id IN (
+        SELECT student_id
+        FROM student_hobby2
+    );
+--9.Поменяйте название хобби всем студентам, кто занимается футболом - на бальные танцы, а кто баскетболом - на вышивание крестиком.
+UPDATE student_hobby2
+SET hobby_id = (
+        SELECT id
+        FROM hobby
+        WHERE name = 'бальные танцы'
+    )
+WHERE hobby_id = (
+        SELECT id
+        FROM hobby
+        WHERE name = 'футбол'
+    );
+UPDATE student_hobby2
+SET hobby_id = (
+        SELECT id
+        FROM hobby
+        WHERE name = 'вышивание крестиком'
+    )
+WHERE hobby_id = (
+        SELECT id
+        FROM hobby
+        WHERE name = 'баскетбол'
+    );
+--11.У всех студентов, средний балл которых меньше 3.2 поменяйте во всех хобби (если занимается чем-либо) 
+--и добавьте (если ничем не занимается), что студент занимается хобби из 10 задания
+UPDATE student2
+SET score = CASE
+  WHEN score < 3.2 THEN 3.2
+  ELSE score
+  END
+WHERE id IN (
+  SELECT sh.student_id
+  FROM student_hobby2 sh
+  INNER JOIN hobby2 h ON h.id = sh.hobby_id
+  WHERE student2.id = sh.student_id
+) OR id NOT IN (
+  SELECT student_id
+  FROM student_hobby2
+);
+--14.Измените средний балл у всех студентов, которые занимаются хобби более 10 лет на 5.00
+UPDATE student2
+SET score = 5.00
+WHERE id IN (
+  SELECT sh.student_id
+  FROM student_hobby2 sh
+  INNER JOIN hobby2 h ON h.id = sh.hobby_id
+  WHERE (CURRENT_DATE - sh.date_start) > INTERVAL '10 years'
+);
+--15.Удалите информацию о хобби, если студент начал им заниматься раньше, чем родился
+DELETE FROM student_hobby2
+WHERE EXISTS (
+  SELECT *
+  FROM student2
+  INNER JOIN hobby2 ON hobby2.id = student_hobby2.hobby_id
+  WHERE student2.id = student_hobby2.student_id
+    AND student2.date_birth > student_hobby2.date_start
+);
 
