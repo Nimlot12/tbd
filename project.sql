@@ -16,45 +16,46 @@
 
 CREATE TABLE users(
     id_user SERIAL PRIMARY KEY,
-    name TEXT,
-    surname TEXT,
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL,
     date_birth DATE,
     date_reg DATE,
-    email TEXT,
+    email TEXT UNIQUE,
     call TEXT,
-    password TEXT
+    password TEXT NOT NULL
 );
 SELECT *FROM users;
 CREATE TABLE menu(
     id_menu SERIAL PRIMARY KEY,
-    id_product INTEGER,
-    name TEXT,
-    price INTEGER
+    id_product INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL
 );
 INSERT INTO menu (id_product, name, price) VALUES (5, 'onion', 523);
 SELECT *FROM menu;
 CREATE TABLE orders(
     id_order SERIAL PRIMARY KEY,
-    id_user INTEGER,
-    date_order DATE,
-    status TEXT
+    id_user INTEGER NOT NULL,
+    date_order DATE NOT NULL,
+    status TEXT NOT NULL,
+    CHECK (status IN ('not ready', 'ready', 'closed'))
 );
 SELECT *FROM orders;
 CREATE TABLE bag(
-    id_order INTEGER,
-    id_menu INTEGER,
-    date_add DATE
+    id_order INTEGER NOT NULL,
+    id_menu INTEGER NOT NULL,
+    date_add DATE NOT NULL
 );
 SELECT *FROM bag;
 CREATE TABLE products(
     id_product SERIAL PRIMARY KEY,
-    name TEXT,
-    ves INTEGER,
-    belki INTEGER,
-    lipid INTEGER,
-    uglevod INTEGER,
-    kkal INTEGER,
-    price INTEGER
+    name TEXT UNIQUE NOT NULL,
+    ves INTEGER NOT NULL,
+    belki INTEGER NOT NULL,
+    lipid INTEGER NOT NULL,
+    uglevod INTEGER NOT NULL,
+    kkal INTEGER NOT NULL,
+    price INTEGER NOT NULL
 );
 SELECT *FROM products;
 
